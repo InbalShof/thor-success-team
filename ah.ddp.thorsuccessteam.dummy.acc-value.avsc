@@ -1,0 +1,10 @@
+{
+    "type": "record",
+    "name": "ExampleRecord",
+    "fields": [
+        {
+            "name": "message",
+            "type": "string"
+        }
+    ]
+}
