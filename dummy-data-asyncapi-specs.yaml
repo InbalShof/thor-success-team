@@ -1,0 +1,132 @@
+asyncapi: 2.6.0
+id: 'urn:com:ahold:mdm:oums:success-team'
+info:
+  title: Success Team Dummy Data for Testing
+  version: 1.0.0
+  description: >-
+    This is a dummy topic with sample messages to test the paved road connectivity
+  contact:
+    name: AH Thor Suite Customer Success Team
+    email: inbal.shofty@ah.nl
+  license:
+    name: Albert Heijn
+    url: 'https://todo.html'
+  x-metadata:
+    applicationId: AP0123456789
+    assignmentGroup: technl-eep-team-messaging-platform
+tags:
+  - name: mdm
+  - name: message processor
+externalDocs:
+  description: Order Unit Service Design (OUMS)
+  url: >-
+    https://confluence-aholddelhaize.atlassian.net/wiki/spaces/MEMDF/pages/148254464460/Order+Unit+Service+Design+OUMS
+  
+defaultContentType: application/json
+servers:
+  acc-cluster:
+    url: 'lkc-rr51pp-4jwpq.westeurope.azure.glb.confluent.cloud:9092'
+    protocol: kafka
+    description: Confluent Kafka Acceptance Cluster.
+    security:
+      - confluentBroker: []
+  acc-schema-registry:
+    url: psrc-0j199.westeurope.azure.confluent.cloud
+    protocol: kafka
+    description: Confluent Kafka Acceptance Schema Registry
+    security:
+      - confluentSchemaRegistry: []
+channels:
+  ah.ddp.thorsuccessteam.dummy.acc:
+    parameters:
+      appEnvironment:
+        description: The application environment (dev, tst, acc, prd).
+        schema:
+          type: string
+    subscribe:
+      operationId: OrderUnitIdV1Subscribe
+      x-metadata:
+        dataType: MasterData
+        internal: true
+      message:
+        traits:
+          - $ref: '#/components/messageTraits/commonHeaders'
+        schemaFormat: application/vnd.apache.avro+json;version=1.9.0
+        payload:
+          $ref: 'ah.ddp.thorsuccessteam.dummy.acc-value.avsc'
+    bindings:
+      kafka:
+        x-configs:
+          cleanup.policy: compact
+    x-messageCompatibility: FORWARD
+  # ah.mdm.oums.order-unit.v2.{appEnvironment}:
+  #   parameters:
+  #     appEnvironment:
+  #       description: The application environment (dev, tst, acc, prd).
+  #       schema:
+  #         type: string
+  #   subscribe:
+  #     operationId: OrderUnitV2Subscribe
+  #     x-metadata:
+  #       dataType: MasterData
+  #     message:
+  #       traits:
+  #         - $ref: '#/components/messageTraits/commonHeaders'
+  #       schemaFormat: application/vnd.apache.avro+json;version=1.9.0
+  #       payload:
+  #         $ref: 'src/main/resources/schema/oums-kafka-payload-schema.avsc'
+  #   bindings:
+  #     kafka:
+  #       x-configs:
+  #         cleanup.policy: compact
+  #   x-messageCompatibility: FORWARD
+
+components:
+  messageTraits:
+    commonHeaders:
+      headers:
+        type: object
+        properties:
+          sourceSystem:
+            description: The source system name
+            type: string
+          sourceId:
+            description: The source system application ID
+            type: string
+          eventId:
+            description: Describes which part of an object is affected by this event change
+            type: string
+          eventCorrelationId:
+            description: Correlation ID used for tracing messages across systems
+            type: string
+          eventDateTime:
+            description: Date and time when the event occurred
+            type: string
+          objectId:
+            description: >-
+              Unique identifier of the object that is being published to the
+              topic
+            type: string
+          objectObsoleteFlag:
+            description: Set to true to indicate the deletion of the object in the source
+            type: boolean
+      # examples:
+      #   - name: test
+      #     headers:
+      #       sourceSystem: OUMS
+      #       sourceId: AP000003033
+      #       eventId: 63fe1a09-f86f-4fcc-9e04-c8b4f747438d
+      #       eventCorrelationId: 02661bc0-2d2a-4fca-ab3c-d3ef02aa1245
+      #       eventDateTime: '2023-07-14T14:01:55Z'
+      #       objectId: '105900'
+      #       objectObsoleteFlag: false
+  securitySchemes:
+    confluentBroker:
+      type: userPassword
+      x-configs:
+        sasl.mechanisms: PLAIN
+        security.protocol: sasl_ssl
+    confluentSchemaRegistry:
+      type: userPassword
+      x-configs:
+        basic.auth.user.info: '{{SCHEMA_REGISTRY_API_KEY}}:{{SCHEMA_REGISTRY_API_SECRET}}'
